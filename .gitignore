@@ -1,0 +1,10 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs/ClientServerProcessManager/v16
+/ClientProcess
+/ClientServerProcessManager
+/DaytonaClient
+/packages
+/RpcContract
