@@ -94,6 +94,9 @@ namespace ClientServerProcessManager
         public async Task ReceiveMessage(string message)
         {
             await this.jtf.SwitchToMainThreadAsync();
+
+            // TODO: no clue if this is the right way to do this
+            this.webView.ExecuteScript(message);
         }
 
         public async Task ReplaceBodyContentsAsync(string contents)

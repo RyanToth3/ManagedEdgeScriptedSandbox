@@ -67,6 +67,16 @@ namespace WebView2Sharp
             this.webView.NavigateToString(text);
         }
 
+        public void ExecuteScript(string javascript)
+        {
+            if (this.webView != null)
+            {
+                this.webView.ExecuteScript(javascript, new ExecuteScriptCompletedEventHandler(this));
+                
+                // Maybe wait for the script to finish executing here?
+            }
+        }
+
         public void OnWindowSizeChanged()
         {
             if (this.webView != null)
@@ -102,6 +112,11 @@ namespace WebView2Sharp
         private void OnNavigationCompleted()
         {
             this.NavigationCompleted?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void OnScriptExecutionCompleted()
+        {
+            // Do something?
         }
 
         private class WebViewCompletedHandler : NativeMethods.IWebView2CreateWebViewCompletedHandler
@@ -150,6 +165,21 @@ namespace WebView2Sharp
             public void Invoke([In, MarshalAs(UnmanagedType.Interface)] NativeMethods.IWebView2WebView webview, [In, MarshalAs(UnmanagedType.Interface)] NativeMethods.IWebView2NavigationCompletedEventArgs args)
             {
                 this.wrapper.OnNavigationCompleted();
+            }
+        }
+
+        private class ExecuteScriptCompletedEventHandler : NativeMethods.IWebView2ExecuteScriptCompletedHandler
+        {
+            private readonly WebView2Wrapper wrapper;
+
+            public ExecuteScriptCompletedEventHandler(WebView2Wrapper wrapper)
+            {
+                this.wrapper = wrapper;
+            }
+
+            public void Invoke([In, MarshalAs(UnmanagedType.Error)] int errorCode, [In, MarshalAs(UnmanagedType.LPWStr)] string resultObjectAsJson)
+            {
+                this.wrapper.OnScriptExecutionCompleted();
             }
         }
     }
