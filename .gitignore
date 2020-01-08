@@ -8,3 +8,7 @@
 /DaytonaClient
 /packages
 /RpcContract
+/WebView2Sharp/obj/Debug
+/WebView2Sharp/bin/Debug
+/WpfWebView2Client/obj
+/WpfWebView2Client/bin/Debug

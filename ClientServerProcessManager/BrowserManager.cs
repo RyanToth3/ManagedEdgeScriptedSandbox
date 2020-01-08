@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using System.Windows;
+using WebView2Sharp;
 
 namespace ClientServerProcessManager
 {
@@ -70,16 +71,13 @@ namespace ClientServerProcessManager
         public async Task CreateBrowserAsync(IntPtr handle)
         {
             await this.jtf.SwitchToMainThreadAsync();
-
-            // Do other browser create stuff
-
-            ImmutableInterlocked.TryAdd(ref this.browsers, handle, new RemoteBrowserWindow(handle, this.jtf));
+            var webView = await WebView2Wrapper.CreateWebView2WrapperAsync(handle, this.jtf);
+            ImmutableInterlocked.TryAdd(ref this.browsers, handle, new RemoteBrowserWindow(handle, webView, this.jtf));
         }
 
         public async Task DestroyBrowserAsync(IntPtr handle)
         {
             await this.jtf.SwitchToMainThreadAsync();
-
             if (ImmutableInterlocked.TryRemove(ref this.browsers, handle, out RemoteBrowserWindow browser))
             {
                 await browser.DisposeAsync();
@@ -170,7 +168,7 @@ namespace ClientServerProcessManager
             await browser.NavigateToStreamAsync(baseUrl, contents);
         }
 
-        public async Task SetWindowPostionAsync(IntPtr browserHandle, IntPtr hwndAfter, Rect position, NativeMethods.ShowWindow flags)
+        public async Task SetWindowPostionAsync(IntPtr browserHandle, IntPtr hwndAfter, Rect position, RpcContract.NativeMethods.ShowWindow flags)
         {
             await this.jtf.SwitchToMainThreadAsync();
             var browser = this.GetRemoteBrowserWindow(browserHandle);

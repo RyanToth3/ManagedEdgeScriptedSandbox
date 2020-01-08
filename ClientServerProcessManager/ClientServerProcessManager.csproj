@@ -209,6 +209,10 @@
       <Project>{8ee86c90-3820-4423-910e-cbabe195deb3}</Project>
       <Name>RpcContract</Name>
     </ProjectReference>
+    <ProjectReference Include="..\WebView2Sharp\WebView2Sharp.csproj">
+      <Project>{0b2f0fae-cece-4d58-b452-6ce274d030e0}</Project>
+      <Name>WebView2Sharp</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

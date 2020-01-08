@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Windows;
+using WebView2Sharp;
 using IAsyncDisposable = Microsoft.VisualStudio.Threading.IAsyncDisposable;
 
 namespace ClientServerProcessManager
@@ -11,11 +12,13 @@ namespace ClientServerProcessManager
     internal class RemoteBrowserWindow : IAsyncDisposable
     {
         private JoinableTaskFactory jtf;
+        private WebView2Wrapper webView;
 
-        public RemoteBrowserWindow(IntPtr handle, JoinableTaskFactory jtf)
+        public RemoteBrowserWindow(IntPtr handle, WebView2Wrapper webView, JoinableTaskFactory jtf)
         {
             this.Handle = handle;
             this.jtf = jtf;
+            this.webView = webView;
         }
 
         public IntPtr Handle
@@ -80,6 +83,7 @@ namespace ClientServerProcessManager
         public async Task NavigateToAsync(string url)
         {
             await this.jtf.SwitchToMainThreadAsync();
+            this.webView.Navigate(url);
         }
 
         public async Task NavigateToStreamAsync(string baseUrl, string contents)
@@ -97,7 +101,7 @@ namespace ClientServerProcessManager
             await this.jtf.SwitchToMainThreadAsync();
         }
 
-        public async Task SetWindowPostionAsync(IntPtr hwndAfter, Rect position, NativeMethods.ShowWindow flags)
+        public async Task SetWindowPostionAsync(IntPtr hwndAfter, Rect position, RpcContract.NativeMethods.ShowWindow flags)
         {
             await this.jtf.SwitchToMainThreadAsync();
         }

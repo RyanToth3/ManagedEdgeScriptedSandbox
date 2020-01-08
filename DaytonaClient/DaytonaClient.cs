@@ -108,7 +108,7 @@ namespace DaytonaClient
                         }
 
                         var cancellationTokenSource = new CancellationTokenSource();
-                        cancellationTokenSource.CancelAfter(50);
+                        cancellationTokenSource.CancelAfter(500);
 
                         try
                         {
