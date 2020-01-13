@@ -15,21 +15,23 @@ namespace WebView2Sharp
         private NativeMethods.IWebView2WebView webView;
         private string pendingNavigate;
         private bool pendingNavigateIsHtml;
+        private IntPtr parentHandle;
         public  JoinableTaskFactory JoinableTaskFactory;
 
         private AsyncManualResetEvent webViewCreationEvent = new AsyncManualResetEvent(initialState: false);
 
-        private WebView2Wrapper(IntPtr hwndTarget, JoinableTaskFactory factory)
+        private WebView2Wrapper(IntPtr hwndTarget, IntPtr parentHandle, JoinableTaskFactory factory)
         {
             this.JoinableTaskFactory = factory;
             this.hwndTarget = hwndTarget;
+            this.parentHandle = parentHandle;
             this.environmentCompletedHandler = new EnvironmentCompletedHandler(this);
             this.webViewCompletedHandler = new WebViewCompletedHandler(this);
         }
 
         public static async Task<WebView2Wrapper> CreateWebView2WrapperAsync(IntPtr hwndTarget, IntPtr parentHandle, JoinableTaskFactory factory)
         {
-            var wrapper = new WebView2Wrapper(hwndTarget, factory);
+            var wrapper = new WebView2Wrapper(hwndTarget, parentHandle, factory);
 
             // string userDataFolder = Path.Combine(Path.GetTempPath(), "WebView2Cache");
             string userDataFolder = null;
@@ -94,6 +96,12 @@ namespace WebView2Sharp
             }
         }
 
+        public void SetParent(IntPtr parentHandle)
+        {
+            this.parentHandle = parentHandle;
+            NativeMethods.ShowWindow(parentHandle, NativeMethods.SW.SHOW);
+        }
+
         private void EnsureVisible()
         {
             var visible = this.webView.get_IsVisible();
@@ -107,6 +115,15 @@ namespace WebView2Sharp
         {
             this.webView = webView;
             this.webView.add_NavigationCompleted(new NavigationCompletedEventHandler(this), out _);
+
+            var settings = this.webView.get_Settings();
+            settings.put_IsScriptEnabled(1);
+            settings.put_AreDefaultScriptDialogsEnabled(1);
+            settings.put_IsWebMessageEnabled(1);
+
+            this.webView.add_WebMessageReceived(new WebMessageReceivedEventHandler(this), out _);
+
+            NativeMethods.ShowWindow(this.parentHandle, NativeMethods.SW.SHOW);
 
             if (!string.IsNullOrEmpty(this.pendingNavigate))
             {
@@ -129,6 +146,11 @@ namespace WebView2Sharp
         }
 
         private void OnScriptExecutionCompleted()
+        {
+            // Do something?
+        }
+
+        private void OnWebMessageReceived()
         {
             // Do something?
         }
@@ -194,6 +216,21 @@ namespace WebView2Sharp
             public void Invoke([In, MarshalAs(UnmanagedType.Error)] int errorCode, [In, MarshalAs(UnmanagedType.LPWStr)] string resultObjectAsJson)
             {
                 this.wrapper.OnScriptExecutionCompleted();
+            }
+        }
+
+        private class WebMessageReceivedEventHandler : NativeMethods.IWebView2WebMessageReceivedEventHandler
+        {
+            private readonly WebView2Wrapper wrapper;
+
+            public WebMessageReceivedEventHandler(WebView2Wrapper wrapper)
+            {
+                this.wrapper = wrapper;
+            }
+
+            public void Invoke([In, MarshalAs(UnmanagedType.Interface)] NativeMethods.IWebView2WebView webview, [In, MarshalAs(UnmanagedType.Interface)] NativeMethods.IWebView2WebMessageReceivedEventArgs args)
+            {
+                this.wrapper.OnWebMessageReceived();
             }
         }
     }

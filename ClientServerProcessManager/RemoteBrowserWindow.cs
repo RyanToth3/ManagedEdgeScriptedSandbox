@@ -105,13 +105,9 @@ namespace ClientServerProcessManager
 
         public async Task SetParentAsync(IntPtr parentHandle)
         {
+            await this.jtf.SwitchToMainThreadAsync();
             this.browserHolder.ParentHandle = parentHandle;
-
-            if (this.webView == null)
-            {
-                this.webView = await WebView2Wrapper.CreateWebView2WrapperAsync(this.browserHolder.Handle, parentHandle, this.jtf);
-            }
-
+            this.webView.SetParent(parentHandle);
             this.webView.OnWindowSizeChanged(parentHandle);
         }
 

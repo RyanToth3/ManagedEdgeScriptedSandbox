@@ -116,7 +116,7 @@ namespace DaytonaClient
                         }
                         catch (OperationCanceledException)
                         {
-                            Debug.Assert(this.scriptedSandboxProcess.HasExited, "Server process did not exit.");
+                            // Ignore.
                         }
                     }
                 }
