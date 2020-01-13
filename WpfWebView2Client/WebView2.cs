@@ -66,9 +66,12 @@ namespace WpfWebView2Client
             {
                 this.client = await DaytonaClient.DaytonaClient.CreateDaytonaClientAsync();
                 var handles = await this.client.CreateBrowserAsync(this.hwndHost.Handle);
+
                 this.browserHandle = handles.browserHandle;
+                NativeMethods.SetParent(handles.browserWindow, this.hwndHost.Handle);
+
                 await this.UpdateChildPlacementAsync();
-                await this.client.NavigateToAsync(browserHandle, "https://reddit.com");
+                await this.client.NavigateToAsync(browserHandle, "https://bing.com");
             });
         }
 

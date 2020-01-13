@@ -6,6 +6,9 @@ namespace WpfWebView2Client
 {
     public static class NativeMethods
     {
+        [DllImport("user32.dll", ExactSpelling = true, CharSet = CharSet.Auto)]
+        public static extern IntPtr SetParent(IntPtr hWnd, IntPtr hWndParent);
+
         #region WebView2 APIs
 
         #region Initialization Interfaces
