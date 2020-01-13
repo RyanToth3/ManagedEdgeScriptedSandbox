@@ -33,12 +33,8 @@ namespace ClientServerProcessManager
             RpcContract.NativeMethods.WindowStyles windowStyle =
                 RpcContract.NativeMethods.WindowStyles.WS_VISIBLE |
                 RpcContract.NativeMethods.WindowStyles.WS_CLIPCHILDREN |
-                RpcContract.NativeMethods.WindowStyles.WS_CLIPSIBLINGS;
-
-            if (this.parentHandle != IntPtr.Zero)
-            {
-                windowStyle |= RpcContract.NativeMethods.WindowStyles.WS_CHILD;
-            }
+                RpcContract.NativeMethods.WindowStyles.WS_CLIPSIBLINGS |
+                RpcContract.NativeMethods.WindowStyles.WS_CHILD;
 
             IntPtr hwnd = RpcContract.NativeMethods.CreateWindowEx(
                 0, // Extended Style
