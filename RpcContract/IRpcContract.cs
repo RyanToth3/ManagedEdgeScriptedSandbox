@@ -19,14 +19,14 @@ namespace RpcContract
         event EventHandler TabOut;
 
         Task PingHeartBeatAsync();
-        Task CreateBrowserAsync(IntPtr handle);
+        Task<(IntPtr browserHandle, IntPtr browserWindow)> CreateBrowserAsync(IntPtr parentHandle);
         Task DestroyBrowserAsync(IntPtr handle);
         Task PostUnicodeStringAsync(IntPtr browserHandle, string message);
         Task NavigateToAsync(IntPtr browserHandle, string url);
         Task NavigateToStreamAsync(IntPtr browserHandle, string baseUrl, string contents);
         Task ReplaceBodyContentsAsync(IntPtr browserHandle, string contents);
         Task SetParentAsync(IntPtr browserHandle, IntPtr parent);
-        Task SetWindowPostionAsync(IntPtr browserHandle, IntPtr hwndAfter, Rect position, NativeMethods.ShowWindow flags);
+        Task SetWindowPostionAsync(IntPtr browserHandle, IntPtr hwndAfter, Rect position, NativeMethods.SWP flags);
         Task SetHostVersionInfoAsync(IntPtr browserHandle, Version version);
         Task SetPluginInformationAsync(IntPtr browserHandle, string info);
         Task<string> GetPluginInformationAsync(IntPtr browserHandle);

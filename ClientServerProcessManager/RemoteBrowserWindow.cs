@@ -2,6 +2,7 @@
 using RpcContract;
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows;
 using WebView2Sharp;
@@ -13,23 +14,21 @@ namespace ClientServerProcessManager
     {
         private JoinableTaskFactory jtf;
         private WebView2Wrapper webView;
+        private BrowserHolder browserHolder;
 
-        public RemoteBrowserWindow(IntPtr handle, WebView2Wrapper webView, JoinableTaskFactory jtf)
+        public RemoteBrowserWindow(BrowserHolder browserHolder, WebView2Wrapper webView, JoinableTaskFactory jtf)
         {
-            this.Handle = handle;
             this.jtf = jtf;
             this.webView = webView;
+            this.browserHolder = browserHolder;
         }
 
         public IntPtr Handle
         {
-            get;
-        }
-
-        public IntPtr Parent 
-        { 
-            get;
-            set; 
+            get
+            {
+                return this.browserHolder.Handle;
+            }
         }
 
         public Version HostVersionInfo
@@ -83,7 +82,7 @@ namespace ClientServerProcessManager
         public async Task NavigateToAsync(string url)
         {
             await this.jtf.SwitchToMainThreadAsync();
-            this.webView.Navigate(url);
+            this.webView?.Navigate(url);
         }
 
         public async Task NavigateToStreamAsync(string baseUrl, string contents)
@@ -96,7 +95,7 @@ namespace ClientServerProcessManager
             await this.jtf.SwitchToMainThreadAsync();
 
             // TODO: no clue if this is the right way to do this
-            this.webView.ExecuteScript(message);
+            this.webView?.ExecuteScript(message);
         }
 
         public async Task ReplaceBodyContentsAsync(string contents)
@@ -104,14 +103,38 @@ namespace ClientServerProcessManager
             await this.jtf.SwitchToMainThreadAsync();
         }
 
-        public async Task SetWindowPostionAsync(IntPtr hwndAfter, Rect position, RpcContract.NativeMethods.ShowWindow flags)
+        public async Task SetParentAsync(IntPtr parentHandle)
+        {
+            this.browserHolder.ParentHandle = parentHandle;
+
+            if (this.webView == null)
+            {
+                this.webView = await WebView2Wrapper.CreateWebView2WrapperAsync(this.browserHolder.Handle, parentHandle, this.jtf);
+            }
+
+            this.webView.OnWindowSizeChanged(parentHandle);
+        }
+
+        public async Task SetWindowPostionAsync(IntPtr hwndAfter, Rect position, NativeMethods.SWP flags)
         {
             await this.jtf.SwitchToMainThreadAsync();
+            if (this.webView == null)
+            {
+                NativeMethods.SetWindowPos(this.browserHolder.Handle, hwndAfter, (int)position.X, (int)position.Y, (int)position.Width, (int)position.Height, flags);
+            }
         }
 
         public async Task SetZoomAsync(int zoom)
         {
             await this.jtf.SwitchToMainThreadAsync();
+        }
+
+        private static IntPtr SetWindowLongPtr(IntPtr hWnd, int nIndex, IntPtr dwNewLong)
+        {
+            if (IntPtr.Size == 8)
+                return NativeMethods.SetWindowLongPtr64(hWnd, nIndex, dwNewLong);
+            else
+                return new IntPtr(NativeMethods.SetWindowLong32(hWnd, nIndex, dwNewLong.ToInt32()));
         }
     }
 }

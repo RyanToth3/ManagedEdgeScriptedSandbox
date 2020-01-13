@@ -551,6 +551,72 @@ namespace WpfWebView2Client
         #endregion
 
         #region Other Types
+        [StructLayout(LayoutKind.Sequential)]
+        public class WINDOWPLACEMENT
+        {
+            public int length = Marshal.SizeOf(typeof(WINDOWPLACEMENT));
+            public int flags;
+            public SW showCmd;
+            public POINT ptMinPosition;
+            public POINT ptMaxPosition;
+            public RECT rcNormalPosition;
+        }
+
+        /// <summary>
+        /// SetWindowPos options
+        /// </summary>
+        [Flags]
+        public enum SWP
+        {
+            ASYNCWINDOWPOS = 0x4000,
+            DEFERERASE = 0x2000,
+            DRAWFRAME = 0x0020,
+            FRAMECHANGED = 0x0020,
+            HIDEWINDOW = 0x0080,
+            NOACTIVATE = 0x0010,
+            NOCOPYBITS = 0x0100,
+            NOMOVE = 0x0002,
+            NOOWNERZORDER = 0x0200,
+            NOREDRAW = 0x0008,
+            NOREPOSITION = 0x0200,
+            NOSENDCHANGING = 0x0400,
+            NOSIZE = 0x0001,
+            NOZORDER = 0x0004,
+            SHOWWINDOW = 0x0040,
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct POINT
+        {
+            public int x;
+            public int y;
+        }
+
+        /// <summary>
+        /// ShowWindow options
+        /// </summary>
+        public enum SW
+        {
+            HIDE = 0,
+            SHOWNORMAL = 1,
+            NORMAL = 1,
+            SHOWMINIMIZED = 2,
+            SHOWMAXIMIZED = 3,
+            MAXIMIZE = 3,
+            SHOWNOACTIVATE = 4,
+            SHOW = 5,
+            MINIMIZE = 6,
+            SHOWMINNOACTIVE = 7,
+            SHOWNA = 8,
+            RESTORE = 9,
+            SHOWDEFAULT = 10,
+            FORCEMINIMIZE = 11,
+        }
+
+        [DllImport("user32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool GetWindowPlacement(IntPtr hwnd, WINDOWPLACEMENT lpwndpl);
+
         [StructLayout(LayoutKind.Sequential, Pack = 8)]
         public struct EventRegistrationToken
         {

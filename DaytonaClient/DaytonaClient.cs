@@ -128,9 +128,9 @@ namespace DaytonaClient
             return this.inner.PingHeartBeatAsync();
         }
 
-        public Task CreateBrowserAsync(IntPtr handle)
+        public Task<(IntPtr browserHandle, IntPtr browserWindow)> CreateBrowserAsync(IntPtr parentHandle)
         {
-            return this.inner.CreateBrowserAsync(handle);
+            return this.inner.CreateBrowserAsync(parentHandle);
         }
 
         public Task DestroyBrowserAsync(IntPtr handle)
@@ -198,7 +198,7 @@ namespace DaytonaClient
             return this.inner.NavigateToStreamAsync(browserHandle, baseUrl, contents);
         }
 
-        public Task SetWindowPostionAsync(IntPtr browserHandle, IntPtr hwndAfter, Rect position, NativeMethods.ShowWindow flags)
+        public Task SetWindowPostionAsync(IntPtr browserHandle, IntPtr hwndAfter, Rect position, NativeMethods.SWP flags)
         {
             return this.inner.SetWindowPostionAsync(browserHandle, hwndAfter, position, flags);
         }

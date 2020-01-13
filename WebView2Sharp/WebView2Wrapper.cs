@@ -19,8 +19,6 @@ namespace WebView2Sharp
 
         private AsyncManualResetEvent webViewCreationEvent = new AsyncManualResetEvent(initialState: false);
 
-        public event EventHandler NavigationCompleted;
-
         private WebView2Wrapper(IntPtr hwndTarget, JoinableTaskFactory factory)
         {
             this.JoinableTaskFactory = factory;
@@ -29,7 +27,7 @@ namespace WebView2Sharp
             this.webViewCompletedHandler = new WebViewCompletedHandler(this);
         }
 
-        public static async Task<WebView2Wrapper> CreateWebView2WrapperAsync(IntPtr hwndTarget, JoinableTaskFactory factory)
+        public static async Task<WebView2Wrapper> CreateWebView2WrapperAsync(IntPtr hwndTarget, IntPtr parentHandle, JoinableTaskFactory factory)
         {
             var wrapper = new WebView2Wrapper(hwndTarget, factory);
 
@@ -39,6 +37,10 @@ namespace WebView2Sharp
 
             // No point in returning until the webview is actually initialized
             await wrapper.webViewCreationEvent.WaitAsync();
+
+            wrapper.EnsureVisible();
+
+            wrapper.OnWindowSizeChanged(parentHandle);
 
             return wrapper;
         }
@@ -77,13 +79,27 @@ namespace WebView2Sharp
             }
         }
 
-        public void OnWindowSizeChanged()
+        public void SetZoom(int zoom)
         {
-            if (this.webView != null)
+            this.webView?.put_ZoomFactor(zoom);
+        }
+
+        public void OnWindowSizeChanged(IntPtr parentHandle)
+        {
+            if (this.webView != null && parentHandle != IntPtr.Zero)
             {
                 NativeMethods.RECT bounds = new NativeMethods.RECT();
-                NativeMethods.GetClientRect(this.hwndTarget, out bounds);
+                NativeMethods.GetClientRect(parentHandle, out bounds);
                 this.webView.put_Bounds(bounds);
+            }
+        }
+
+        private void EnsureVisible()
+        {
+            var visible = this.webView.get_IsVisible();
+            if (visible == 0)
+            {
+                this.webView.put_IsVisible(1);
             }
         }
 
@@ -91,8 +107,6 @@ namespace WebView2Sharp
         {
             this.webView = webView;
             this.webView.add_NavigationCompleted(new NavigationCompletedEventHandler(this), out _);
-
-            this.OnWindowSizeChanged();
 
             if (!string.IsNullOrEmpty(this.pendingNavigate))
             {
@@ -111,7 +125,7 @@ namespace WebView2Sharp
 
         private void OnNavigationCompleted()
         {
-            this.NavigationCompleted?.Invoke(this, EventArgs.Empty);
+            // Do something?
         }
 
         private void OnScriptExecutionCompleted()

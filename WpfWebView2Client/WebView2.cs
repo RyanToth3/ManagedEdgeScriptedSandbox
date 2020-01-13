@@ -4,6 +4,7 @@ using System;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Interop;
@@ -15,6 +16,7 @@ namespace WpfWebView2Client
         JoinableTaskFactory joinableTaskFactory;
         private WebView2HwndHost hwndHost;
         private IRpcContract client;
+        private IntPtr browserHandle;
 
         public WebView2()
         {
@@ -63,9 +65,24 @@ namespace WpfWebView2Client
             this.joinableTaskFactory.RunAsync(async () =>
             {
                 this.client = await DaytonaClient.DaytonaClient.CreateDaytonaClientAsync();
-                await this.client.CreateBrowserAsync(this.hwndHost.Handle);
-                await this.client.NavigateToAsync(this.hwndHost.Handle, "https://reddit.com");
+                var handles = await this.client.CreateBrowserAsync(this.hwndHost.Handle);
+                this.browserHandle = handles.browserHandle;
+                await this.UpdateChildPlacementAsync();
+                await this.client.NavigateToAsync(browserHandle, "https://reddit.com");
             });
+        }
+
+        private async Task UpdateChildPlacementAsync()
+        {
+            if (this.hwndHost.Handle != IntPtr.Zero)
+            {
+                NativeMethods.WINDOWPLACEMENT placement = new NativeMethods.WINDOWPLACEMENT();
+                if (NativeMethods.GetWindowPlacement(this.hwndHost.Handle, placement))
+                {
+                    var position = placement.rcNormalPosition;
+                    await this.client.SetWindowPostionAsync(this.browserHandle, /*hwndAfter*/ IntPtr.Zero, new Rect(position.Left, position.Top, position.Right - position.Left, position.Bottom - position.Top), RpcContract.NativeMethods.SWP.NOMOVE);
+                }
+            }
         }
 
         public void Close()
@@ -90,7 +107,7 @@ namespace WpfWebView2Client
             {
                 this.joinableTaskFactory.RunAsync(async () =>
                 {
-                    await this.client.NavigateToAsync(this.hwndHost.Handle, source);
+                    await this.client.NavigateToAsync(browserHandle, source);
                 }).Task.Forget();
             }
         }

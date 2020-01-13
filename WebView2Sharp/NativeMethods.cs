@@ -6,10 +6,35 @@ namespace WebView2Sharp
 {
     public static class NativeMethods
     {
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool ShowWindow(IntPtr hwnd, SW code);
+
+        /// <summary>
+        /// ShowWindow options
+        /// </summary>
+        public enum SW
+        {
+            HIDE = 0,
+            SHOWNORMAL = 1,
+            NORMAL = 1,
+            SHOWMINIMIZED = 2,
+            SHOWMAXIMIZED = 3,
+            MAXIMIZE = 3,
+            SHOWNOACTIVATE = 4,
+            SHOW = 5,
+            MINIMIZE = 6,
+            SHOWMINNOACTIVE = 7,
+            SHOWNA = 8,
+            RESTORE = 9,
+            SHOWDEFAULT = 10,
+            FORCEMINIMIZE = 11,
+        }
+
         #region WebView2 APIs
 
         #region Initialization Interfaces
-        [DllImport("WebView2Loader.dll")]
+        [DllImport("WebView2Loader.dll", SetLastError = true)]
         public static extern int CreateWebView2EnvironmentWithDetails(string browserExecutableFolder, string userDataFolder, string additionalBrowserArguments, IWebView2CreateWebView2EnvironmentCompletedHandler environment_created_handler);
 
         //[DllImport("WebView2Loader.dll")]

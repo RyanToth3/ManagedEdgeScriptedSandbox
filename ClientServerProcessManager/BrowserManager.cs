@@ -5,8 +5,11 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Interop;
 using WebView2Sharp;
 
 namespace ClientServerProcessManager
@@ -16,6 +19,7 @@ namespace ClientServerProcessManager
         private JoinableTaskFactory jtf;
         private Func<Task> shutdownTask;
         private ImmutableDictionary<IntPtr, RemoteBrowserWindow> browsers = ImmutableDictionary<IntPtr, RemoteBrowserWindow>.Empty;
+        private int size = 0;
 
         public event EventHandler FocusChanged
         {
@@ -68,11 +72,36 @@ namespace ClientServerProcessManager
             await this.jtf.SwitchToMainThreadAsync();
         }
 
-        public async Task CreateBrowserAsync(IntPtr handle)
+        public async Task<(IntPtr browserHandle, IntPtr browserWindow)> CreateBrowserAsync(IntPtr parentHandle)
         {
             await this.jtf.SwitchToMainThreadAsync();
-            var webView = await WebView2Wrapper.CreateWebView2WrapperAsync(handle, this.jtf);
-            ImmutableInterlocked.TryAdd(ref this.browsers, handle, new RemoteBrowserWindow(handle, webView, this.jtf));
+
+            if (parentHandle == IntPtr.Zero)
+            {
+                // Set parent handle to the desktop window if one hasn't been specified yet
+                parentHandle = NativeMethods.GetDesktopWindow();
+            }
+
+            var window = new BrowserHolder(parentHandle);
+
+            // This is just a key that helps with identifying each webview
+            var referenceHandle = this.ToHandle(Interlocked.Increment(ref this.size));
+
+            WebView2Wrapper webView = await WebView2Wrapper.CreateWebView2WrapperAsync(window.Handle, parentHandle, this.jtf);
+
+            ImmutableInterlocked.TryAdd(ref this.browsers, referenceHandle, new RemoteBrowserWindow(window, webView, this.jtf));
+
+            return (referenceHandle, window.Handle);
+        }
+
+        [DllImport("user32.dll")]
+        public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+        const uint shrowd = 0x01DECAC11;
+        const int shift = 8;
+        IntPtr ToHandle(int index)
+        {
+            return new IntPtr(((uint)index << shift) ^ shrowd);
         }
 
         public async Task DestroyBrowserAsync(IntPtr handle)
@@ -109,7 +138,7 @@ namespace ClientServerProcessManager
         {
             await this.jtf.SwitchToMainThreadAsync();
             var browser = this.GetRemoteBrowserWindow(browserHandle);
-            browser.Parent = parent;
+            await browser.SetParentAsync(parent);
         }
 
         public async Task<string> GetPluginInformationAsync(IntPtr browserHandle)
@@ -168,11 +197,11 @@ namespace ClientServerProcessManager
             await browser.NavigateToStreamAsync(baseUrl, contents);
         }
 
-        public async Task SetWindowPostionAsync(IntPtr browserHandle, IntPtr hwndAfter, Rect position, RpcContract.NativeMethods.ShowWindow flags)
+        public async Task SetWindowPostionAsync(IntPtr browserHandle, IntPtr hwndAfter, Rect position, RpcContract.NativeMethods.SWP flags)
         {
             await this.jtf.SwitchToMainThreadAsync();
             var browser = this.GetRemoteBrowserWindow(browserHandle);
-            await browser.SetWindowPostionAsync(hwndAfter, position, flags);
+            await browser.SetWindowPostionAsync(hwndAfter, position, (NativeMethods.SWP)(int)flags);
         }
 
         public async Task SetFileAliasInfoAsync(IntPtr browserHandle, Dictionary<string, FileAlias> fileAliases)
