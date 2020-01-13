@@ -1,5 +1,6 @@
 ﻿using Microsoft.VisualStudio.Threading;
 using System;
+using System.ComponentModel;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -36,6 +37,11 @@ namespace WebView2Sharp
             // string userDataFolder = Path.Combine(Path.GetTempPath(), "WebView2Cache");
             string userDataFolder = null;
             int result = NativeMethods.CreateWebView2EnvironmentWithDetails(null, userDataFolder, null, wrapper.environmentCompletedHandler);
+
+            if (result != 0)
+            {
+                throw new Win32Exception("Failed to create the web view environment with details.");
+            }
 
             // No point in returning until the webview is actually initialized
             await wrapper.webViewCreationEvent.WaitAsync();
