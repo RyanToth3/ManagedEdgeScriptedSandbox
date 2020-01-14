@@ -48,7 +48,10 @@ namespace WebView2Sharp
 
             wrapper.EnsureVisible();
 
-            wrapper.OnWindowSizeChanged(parentHandle);
+            if (parentHandle != IntPtr.Zero)
+            {
+                wrapper.OnWindowSizeChanged(parentHandle);
+            }
 
             return wrapper;
         }
@@ -99,6 +102,8 @@ namespace WebView2Sharp
                 NativeMethods.RECT bounds = new NativeMethods.RECT();
                 NativeMethods.GetClientRect(parentHandle, out bounds);
                 this.webView.put_Bounds(bounds);
+
+                NativeMethods.SetWindowPos(this.hwndTarget, IntPtr.Zero, bounds.X, bounds.Y, bounds.Width, bounds.Height, 0);
             }
         }
 
