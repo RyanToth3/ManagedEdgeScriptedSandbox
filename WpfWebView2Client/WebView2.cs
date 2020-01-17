@@ -65,13 +65,15 @@ namespace WpfWebView2Client
             this.joinableTaskFactory.RunAsync(async () =>
             {
                 this.client = await DaytonaClient.DaytonaClient.CreateDaytonaClientAsync();
-                var handles = await this.client.CreateBrowserAsync(this.hwndHost.Handle);
+                var handles = await this.client.CreateBrowserAsync(IntPtr.Zero);
 
                 this.browserHandle = handles.browserHandle;
-                NativeMethods.SetParent(handles.browserWindow, this.hwndHost.Handle);
 
-                await this.UpdateChildPlacementAsync();
                 await this.client.NavigateToAsync(browserHandle, "https://bing.com");
+
+                await this.client.SetParentAsync(this.browserHandle, this.hwndHost.Handle);
+
+                NativeMethods.SetParent(handles.browserWindow, this.hwndHost.Handle);
             });
         }
 

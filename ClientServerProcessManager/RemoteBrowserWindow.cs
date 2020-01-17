@@ -107,16 +107,24 @@ namespace ClientServerProcessManager
         {
             await this.jtf.SwitchToMainThreadAsync();
             this.browserHolder.ParentHandle = parentHandle;
-            this.webView.SetParent(parentHandle);
-            this.webView.OnWindowSizeChanged(parentHandle);
-        }
 
-        public async Task SetWindowPostionAsync(IntPtr hwndAfter, Rect position, NativeMethods.SWP flags)
-        {
-            await this.jtf.SwitchToMainThreadAsync();
             if (this.webView == null)
             {
-                NativeMethods.SetWindowPos(this.browserHolder.Handle, hwndAfter, (int)position.X, (int)position.Y, (int)position.Width, (int)position.Height, flags);
+                this.webView = await WebView2Wrapper.CreateWebView2WrapperAsync(this.browserHolder.Handle, parentHandle, this.jtf);
+            }
+            else
+            {
+                this.webView.SetParent(parentHandle);
+                this.webView.OnWindowSizeChanged(parentHandle);
+            }
+        }
+
+        public async Task SetWindowPostionAsync(IntPtr hwndAfter, Rect position, WebView2Sharp.NativeMethods.SWP flags)
+        {
+            await this.jtf.SwitchToMainThreadAsync();
+            if (this.webView != null)
+            {
+                this.webView.UpdateWindowSize(new WebView2Sharp.NativeMethods.RECT((int)position.X, (int)position.Y,(int)position.Width,(int)position.Height), flags);
             }
         }
 

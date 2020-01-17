@@ -87,7 +87,12 @@ namespace ClientServerProcessManager
             // This is just a key that helps with identifying each webview
             var referenceHandle = this.ToHandle(Interlocked.Increment(ref this.size));
 
-            WebView2Wrapper webView = await WebView2Wrapper.CreateWebView2WrapperAsync(window.Handle, parentHandle, this.jtf);
+            WebView2Wrapper webView = null;
+
+            if (parentHandle != IntPtr.Zero)
+            {
+                webView = await WebView2Wrapper.CreateWebView2WrapperAsync(window.Handle, parentHandle, this.jtf);
+            }
 
             ImmutableInterlocked.TryAdd(ref this.browsers, referenceHandle, new RemoteBrowserWindow(window, webView, this.jtf));
 
@@ -124,7 +129,7 @@ namespace ClientServerProcessManager
         {
             await this.jtf.SwitchToMainThreadAsync();
             var browser = this.GetRemoteBrowserWindow(browserHandle);
-            await browser.NavigateToAsync(url);
+            await browser.NavigateToAsync("http://bing.com");
         }
 
         public async Task ReplaceBodyContentsAsync(IntPtr browserHandle, string contents)
@@ -201,7 +206,7 @@ namespace ClientServerProcessManager
         {
             await this.jtf.SwitchToMainThreadAsync();
             var browser = this.GetRemoteBrowserWindow(browserHandle);
-            await browser.SetWindowPostionAsync(hwndAfter, position, (NativeMethods.SWP)(int)flags);
+            await browser.SetWindowPostionAsync(hwndAfter, position, (WebView2Sharp.NativeMethods.SWP)(int)flags);
         }
 
         public async Task SetFileAliasInfoAsync(IntPtr browserHandle, Dictionary<string, FileAlias> fileAliases)

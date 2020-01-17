@@ -48,7 +48,7 @@ namespace WebView2Sharp
 
             wrapper.EnsureVisible();
 
-            if (parentHandle != IntPtr.Zero)
+            if (parentHandle != NativeMethods.GetDesktopWindow())
             {
                 wrapper.OnWindowSizeChanged(parentHandle);
             }
@@ -101,9 +101,17 @@ namespace WebView2Sharp
             {
                 NativeMethods.RECT bounds = new NativeMethods.RECT();
                 NativeMethods.GetClientRect(parentHandle, out bounds);
-                this.webView.put_Bounds(bounds);
+                this.UpdateWindowSize(bounds, NativeMethods.SWP.NOMOVE);
+            }
+        }
 
-                NativeMethods.SetWindowPos(this.hwndTarget, IntPtr.Zero, bounds.X, bounds.Y, bounds.Width, bounds.Height, 0);
+        public void UpdateWindowSize(NativeMethods.RECT bounds, NativeMethods.SWP flags)
+        {
+            if (this.webView != null && parentHandle != NativeMethods.GetDesktopWindow())
+            {
+                this.webView.put_Bounds(bounds);
+                NativeMethods.SetWindowPos(this.hwndTarget, IntPtr.Zero, bounds.X, bounds.Y, bounds.Width, bounds.Height, flags);
+                this.EnsureVisible();
             }
         }
 
@@ -115,10 +123,13 @@ namespace WebView2Sharp
 
         private void EnsureVisible()
         {
-            var visible = this.webView.get_IsVisible();
-            if (visible == 0)
+            if (this.webView != null && this.parentHandle != NativeMethods.GetDesktopWindow())
             {
-                this.webView.put_IsVisible(1);
+                var visible = this.webView.get_IsVisible();
+                if (visible == 0)
+                {
+                    this.webView.put_IsVisible(1);
+                }
             }
         }
 

@@ -10,6 +10,9 @@ namespace WebView2Sharp
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool ShowWindow(IntPtr hwnd, SW code);
 
+        [DllImport("user32.dll", SetLastError = false)]
+        public static extern IntPtr GetDesktopWindow();
+
         /// <summary>
         /// ShowWindow options
         /// </summary>
@@ -994,7 +997,30 @@ namespace WebView2Sharp
         public static extern bool GetClientRect(IntPtr hWnd, out RECT lpRect);
 
         [DllImport("user32.dll")]
-        public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
+        public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, SWP flags);
+
+        /// <summary>
+        /// SetWindowPos options
+        /// </summary>
+        [Flags]
+        public enum SWP
+        {
+            ASYNCWINDOWPOS = 0x4000,
+            DEFERERASE = 0x2000,
+            DRAWFRAME = 0x0020,
+            FRAMECHANGED = 0x0020,
+            HIDEWINDOW = 0x0080,
+            NOACTIVATE = 0x0010,
+            NOCOPYBITS = 0x0100,
+            NOMOVE = 0x0002,
+            NOOWNERZORDER = 0x0200,
+            NOREDRAW = 0x0008,
+            NOREPOSITION = 0x0200,
+            NOSENDCHANGING = 0x0400,
+            NOSIZE = 0x0001,
+            NOZORDER = 0x0004,
+            SHOWWINDOW = 0x0040,
+        }
 
         public enum WindowStyles : uint
         {
