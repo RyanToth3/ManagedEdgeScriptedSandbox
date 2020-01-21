@@ -130,6 +130,8 @@ namespace WebView2Sharp
                 {
                     this.webView.put_IsVisible(1);
                 }
+
+                NativeMethods.ShowWindow(this.parentHandle, NativeMethods.SW.SHOW);
             }
         }
 
